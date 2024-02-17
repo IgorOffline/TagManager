@@ -2,7 +2,6 @@ package practice.igoroffline.javafx;
 
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
-import org.apache.commons.io.FileUtils;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -14,7 +13,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,16 +52,16 @@ public class Main extends Application {
             System.out.println(input);
             try {
                 final var file = new File(input);
-                final var isDir = FileUtils.isDirectory(file);
+                final var isDir = IOUtils.isDirectory(file);
                 System.out.println(isDir);
                 if (isDir) {
-                    Iterator<File> iterator = FileUtils.iterateFiles(file, null, true);
+                    Iterator<File> iterator = IOUtils.iterateFiles(file);
                     var counterFiles = 0;
                     var counterTags = 0;
                     while (iterator.hasNext()) {
                         final var next = iterator.next();
                         final List<String> tags = new ArrayList<>();
-                        final var lines = FileUtils.readLines(next, StandardCharsets.UTF_8);
+                        final var lines = IOUtils.readLines(next);
                         for (final var line : lines) {
                             final var tag = extractTagFromLine(line);
                             if (tag.isPresent()) {
