@@ -11,10 +11,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import practice.igoroffline.javafx.models.FileLines;
+import practice.igoroffline.javafx.models.FileTags;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -36,17 +39,21 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         stage.setTitle("TagManager");
 
+        final List<FileTags> fileTags = new ArrayList<>();
+        final List<Map.Entry<String, List<FileLines>>> sortedTagFiles = new ArrayList<>();
+        final Map<String, List<String>> tagLines = new HashMap<>();
+
         final var textField = new TextField();
 
-        final List<FileTags> fileTags = new ArrayList<>();
-
         final var btnDir = new Button();
-        final var btnFileTags = new Button();
-        btnFileTags.setDisable(true);
-        final var btnTagCounterList = new Button();
-        btnTagCounterList.setDisable(true);
-
         btnDir.setText("Dir");
+        final var btnTagFiles = new Button();
+        btnTagFiles.setDisable(true);
+        btnTagFiles.setText("TagFiles");
+
+        final var listViewTagCounter = new ListView<String>();
+        final var listViewTagFile = new ListView<String>();
+
         btnDir.setOnAction(event -> {
             final var input = textField.getText();
             System.out.println(input);
@@ -55,13 +62,13 @@ public class Main extends Application {
                 final var isDir = IOUtils.isDirectory(file);
                 System.out.println(isDir);
                 if (isDir) {
-                    Iterator<File> iterator = IOUtils.iterateFiles(file);
+                    Iterator<File> fileIterator = IOUtils.iterateFiles(file);
                     var counterFiles = 0;
                     var counterTags = 0;
-                    while (iterator.hasNext()) {
-                        final var next = iterator.next();
+                    while (fileIterator.hasNext()) {
+                        final var nextFile = fileIterator.next();
                         final List<String> tags = new ArrayList<>();
-                        final var lines = IOUtils.readLines(next);
+                        final var lines = IOUtils.readLines(nextFile);
                         for (final var line : lines) {
                             final var tag = extractTagFromLine(line);
                             if (tag.isPresent()) {
@@ -69,76 +76,62 @@ public class Main extends Application {
                                 counterTags++;
                             }
                         }
-                        fileTags.add(new FileTags(next, lines, tags));
+                        final var fileLines = new FileLines(nextFile, lines);
+                        fileTags.add(new FileTags(fileLines, tags));
+
                         counterFiles++;
                     }
                     System.out.format("counterFiles= %d, counterTags=%d%n", counterFiles, counterTags);
-                    btnFileTags.setDisable(false);
+                    btnTagFiles.setDisable(false);
                 }
             } catch (Exception ex) {
                 System.err.println(ex.getMessage());
             }
         });
 
-        final List<Map.Entry<String, Integer>> tagCounterList = new ArrayList<>();
+        btnTagFiles.setOnAction(event -> {
+            final var sorted = sortedTagFiles(fileTags);
+            sortedTagFiles.addAll(sorted);
 
-        btnFileTags.setText("FileTags");
-        btnFileTags.setOnAction(event -> {
-            final Map<String, Integer> tagCounter = new HashMap<>();
-            for (final var fileTag : fileTags) {
-                for (final var tag : fileTag.tags()) {
-                    if (tagCounter.containsKey(tag)) {
-                        int counter = tagCounter.get(tag);
-                        counter++;
-                        tagCounter.put(tag, counter);
-                    } else {
-                        tagCounter.put(tag, 1);
+            for (final var tagFiles : sortedTagFiles) {
+                final var tag = tagFiles.getKey();
+                for (final var files : tagFiles.getValue()) {
+                    for (final var line : files.lines()) {
+                        if (line.contains(TAG_START + tag + TAG_END)) {
+                            if (tagLines.containsKey(tag)) {
+                                final var linesList = tagLines.get(tag);
+                                final List<String> newLinesList = new ArrayList<>(linesList);
+                                newLinesList.add(line);
+                                tagLines.put(tag, newLinesList);
+                            } else {
+                                tagLines.put(tag, List.of(line));
+                            }
+                        }
                     }
                 }
             }
-            final var sorted =
-                    tagCounter.entrySet().stream()
-                            .sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).toList();
-            tagCounterList.addAll(sorted);
 
-            System.out.println(tagCounterList);
-            btnTagCounterList.setDisable(false);
-        });
-
-        final var listViewTagCounter = new ListView<String>();
-
-        btnTagCounterList.setText("TagCounterList");
-        btnTagCounterList.setOnAction(event -> {
-            List<String> items = new ArrayList<>();
-            for (final var tagCounter : tagCounterList) {
-                final var tagCounterToString = tagCounter.getKey() + JOIN_CHAR + tagCounter.getValue();
-                items.add(tagCounterToString);
+            final List<String> tagCounterItems = new ArrayList<>();
+            for (final var tagFiles : sortedTagFiles) {
+                final var tagCounterToString = tagFiles.getKey() + JOIN_CHAR + tagFiles.getValue().size();
+                tagCounterItems.add(tagCounterToString);
             }
-            listViewTagCounter.getItems().clear();
-            listViewTagCounter.getItems().addAll(items);
-        });
 
-        final var listViewTagFile = new ListView<String>();
-        final List<String> listViewTagFileItems = new ArrayList<>();
+            listViewTagCounter.getItems().addAll(tagCounterItems);
+        });
 
         listViewTagCounter.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             System.out.println(newValue);
-            listViewTagFileItems.clear();
             final var split = newValue.split(SPLIT_REGEX);
             final var tag = split[0];
-            for (final var fileTag : fileTags) {
-                for (final var line : fileTag.lines()) {
-                    if (line.contains(TAG_START + tag + TAG_END)) {
-                        listViewTagFileItems.add(line);
-                    }
-                }
-            }
+            final var lines = tagLines.get(tag);
+            final List<String> listViewTagFileItems = new ArrayList<>(lines);
             listViewTagFile.getItems().clear();
             listViewTagFile.getItems().addAll(listViewTagFileItems);
         });
 
         final var hb = new HBox();
-        hb.getChildren().addAll(textField, btnDir, btnFileTags, btnTagCounterList);
+        hb.getChildren().addAll(textField, btnDir, btnTagFiles);
         hb.setSpacing(10);
         hb.setPadding(new Insets(10, 10, 10, 10));
         final var vb = new VBox();
@@ -179,5 +172,25 @@ public class Main extends Application {
             System.err.println(ex.getMessage());
             return Optional.empty();
         }
+    }
+
+    private List<Map.Entry<String, List<FileLines>>> sortedTagFiles(List<FileTags> fileTags) {
+        Map<String, List<FileLines>> tagFiles = new HashMap<>();
+
+        for (final var fileTag : fileTags) {
+            for (final var tag : fileTag.tags()) {
+                if (tagFiles.containsKey(tag)) {
+                    final var fileLinesList = tagFiles.get(tag);
+                    final List<FileLines> newFileLinesList = new ArrayList<>(fileLinesList);
+                    newFileLinesList.add(fileTag.fileLines());
+                    tagFiles.put(tag, newFileLinesList);
+                } else {
+                    tagFiles.put(tag, List.of(fileTag.fileLines()));
+                }
+            }
+        }
+
+        return tagFiles.entrySet().stream().sorted(
+                Collections.reverseOrder(Comparator.comparingInt(o -> o.getValue().size()))).toList();
     }
 }
