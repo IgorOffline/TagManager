@@ -10,4 +10,5 @@ module practice.igoroffline.tagmanager {
     opens practice.igoroffline.tagmanager to javafx.fxml;
     exports practice.igoroffline.tagmanager;
     exports practice.igoroffline.javafx;
+    exports practice.igoroffline.javafx.models;
 }
