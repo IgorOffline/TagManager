@@ -1,14 +1,20 @@
 package practice.igoroffline.javafx;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.validator.routines.UrlValidator;
 import practice.igoroffline.javafx.models.FileLines;
 import practice.igoroffline.javafx.models.FileTags;
 import practice.igoroffline.javafx.models.ProcessTags;
@@ -141,5 +147,50 @@ public class Service {
                 .sorted(Collections.reverseOrder(
                         Comparator.comparingInt(o -> o.getValue().size())))
                 .toList();
+    }
+
+    public ProcessTags listUrls(List<FileTags> fileTags) {
+
+        var count = 10;
+        if (fileTags.size() < count) {
+            count = fileTags.size();
+        }
+        System.out.println("---");
+        var urlCount = 0;
+        for (int i = 0; i < count; i++) {
+            final var fileTag = fileTags.get(i);
+            final var lineCount = fileTag.fileLines().lines().size();
+            System.out.println(lineCount);
+
+            final var hostCount = new HashMap<String, Integer>();
+
+            for (final var line : fileTag.fileLines().lines()) {
+                if (UrlValidator.getInstance().isValid(line)) {
+                    urlCount++;
+                    try {
+                        final var url = new URL(line);
+                        final var host = url.getHost();
+                        var keyCount = hostCount.getOrDefault(host, 0);
+                        keyCount++;
+                        hostCount.put(host, keyCount);
+                    } catch (MalformedURLException mex) {
+                        System.err.println(mex.getMessage());
+                    }
+                }
+            }
+
+            Stream<Map.Entry<String, Integer>> stream =
+                    hostCount.entrySet().stream().sorted(Map.Entry.comparingByValue());
+            final var hostCountSorted = stream.collect(
+                    Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+
+            System.out.println(hostCountSorted);
+        }
+        System.out.println("urlCount= " + urlCount);
+        System.out.println("---");
+
+        // return new ProcessTags(tagCounterList, tagLines);
+
+        return new ProcessTags(new ArrayList<>(), new HashMap<>());
     }
 }

@@ -4,6 +4,7 @@ module practice.igoroffline.tagmanager {
     requires org.controlsfx.controls;
     requires org.kordamp.bootstrapfx.core;
     requires org.apache.commons.io;
+    requires org.apache.commons.validator;
 
     opens practice.igoroffline.tagmanager to
             javafx.fxml;

@@ -1,7 +1,6 @@
 package practice.igoroffline.javafx;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -45,7 +44,7 @@ public class Main extends Application {
             if (actionType == ActionType.PROCESS_TAGS) {
                 processTags = service.processTags(fileTags);
             } else {
-                processTags = new ProcessTags(new ArrayList<>(), new HashMap<>());
+                processTags = service.listUrls(fileTags);
                 System.out.println(actionType);
             }
             listViewTagCounter.getItems().addAll(processTags.tagCounterList());
