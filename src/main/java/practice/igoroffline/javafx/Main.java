@@ -1,6 +1,7 @@
 package practice.igoroffline.javafx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -15,6 +16,8 @@ import javafx.stage.Stage;
 import practice.igoroffline.javafx.models.ProcessTags;
 
 public class Main extends Application {
+
+    private final ActionType actionType = ActionType.LIST_URLS;
 
     private final Service service = new Service();
     private ProcessTags processTags;
@@ -39,7 +42,12 @@ public class Main extends Application {
             final var directoryUrl = tfDirectoryUrl.getText();
             System.out.println(directoryUrl);
             final var fileTags = service.searchDirectory(directoryUrl);
-            processTags = service.processTags(fileTags);
+            if (actionType == ActionType.PROCESS_TAGS) {
+                processTags = service.processTags(fileTags);
+            } else {
+                processTags = new ProcessTags(new ArrayList<>(), new HashMap<>());
+                System.out.println(actionType);
+            }
             listViewTagCounter.getItems().addAll(processTags.tagCounterList());
         });
 
