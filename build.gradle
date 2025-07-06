@@ -1,9 +1,18 @@
+buildscript {
+  dependencies {
+    classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.68.0'
+    classpath 'com.diffplug.spotless:spotless-plugin-gradle:6.25.0'
+  }
+}
+
 plugins {
   id 'java'
   id 'application'
   id 'org.javamodularity.moduleplugin' version '1.8.12'
   id 'org.openjfx.javafxplugin' version '0.0.13'
   id 'org.beryx.jlink' version '2.25.0'
+  id 'com.palantir.java-format' version '2.68.0'
+  id 'com.diffplug.spotless' version '6.25.0'
 }
 
 group 'practice.igoroffline'
@@ -44,8 +53,22 @@ dependencies {
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
+spotless {
+  java {
+    target 'src/main/java/**/*.java', 'src/main/test/**/*.java'
+    removeUnusedImports()
+    importOrder ''
+    trimTrailingWhitespace()
+    indentWithSpaces 4
+  }
+}
+
 test {
 useJUnitPlatform()}
+
+allprojects {
+  apply plugin: 'com.palantir.java-format'
+}
 
 jlink {
   imageZip = project.file("${buildDir}/distributions/app-${javafx.platform.classifier}.zip")

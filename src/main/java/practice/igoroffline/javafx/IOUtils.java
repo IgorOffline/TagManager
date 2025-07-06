@@ -1,12 +1,11 @@
 package practice.igoroffline.javafx;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 
 public class IOUtils {
 
