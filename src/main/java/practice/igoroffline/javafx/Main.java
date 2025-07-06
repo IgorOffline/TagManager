@@ -1,5 +1,7 @@
 package practice.igoroffline.javafx;
 
+import java.util.ArrayList;
+import java.util.List;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,9 +13,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import practice.igoroffline.javafx.models.ProcessTags;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main extends Application {
 

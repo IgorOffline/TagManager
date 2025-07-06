@@ -1,9 +1,5 @@
 package practice.igoroffline.javafx;
 
-import practice.igoroffline.javafx.models.FileLines;
-import practice.igoroffline.javafx.models.FileTags;
-import practice.igoroffline.javafx.models.ProcessTags;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import practice.igoroffline.javafx.models.FileLines;
+import practice.igoroffline.javafx.models.FileTags;
+import practice.igoroffline.javafx.models.ProcessTags;
 
 public class Service {
 
@@ -85,7 +84,8 @@ public class Service {
         }
 
         for (final var tagFiles : sortedTagFiles) {
-            final var tagCounterToString = tagFiles.getKey() + JOIN_CHAR + tagFiles.getValue().size();
+            final var tagCounterToString =
+                    tagFiles.getKey() + JOIN_CHAR + tagFiles.getValue().size();
             tagCounterList.add(tagCounterToString);
         }
 
@@ -137,7 +137,9 @@ public class Service {
             }
         }
 
-        return tagFiles.entrySet().stream().sorted(
-                Collections.reverseOrder(Comparator.comparingInt(o -> o.getValue().size()))).toList();
+        return tagFiles.entrySet().stream()
+                .sorted(Collections.reverseOrder(
+                        Comparator.comparingInt(o -> o.getValue().size())))
+                .toList();
     }
 }
