@@ -6,7 +6,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -155,29 +156,36 @@ public class Service {
     }
 
     public ProcessTags listUrls(List<FileTags> fileTags) {
-
-        // var count = 10;
-        // if (fileTags.size() < count) {
-        //    count = fileTags.size();
-        // }
-        // System.out.println("---");
+        final var hostCountSuperset = new HashMap<String, Integer>();
         var urlCount = 0;
-        // for (int i = 0; i < count; i++) {
-        for (int i = 0; i < fileTags.size(); i++) {
-            final var fileTag = fileTags.get(i);
-            final var lineCount = fileTag.fileLines().lines().size();
-            // System.out.println(lineCount);
-
+        for (final FileTags fileTag : fileTags) {
             final var hostCount = new HashMap<String, Integer>();
 
-            if (fileTag.lastModifiedTime().toInstant().isAfter(Instant.now().minus(3, ChronoUnit.DAYS))) {
+            // final var isWithinTimeframe = fileTag.lastModifiedTime().toInstant().isAfter(Instant.now().minus(3,
+            // ChronoUnit.DAYS));
+
+            final var yearFrom = 2025;
+            final var monthFrom = 6;
+            final var dayFrom = 1;
+            final var yearTo = 2025;
+            final var monthTo = 7;
+            final var dayTo = 1;
+
+            Instant start1 =
+                    LocalDateTime.of(yearFrom, monthFrom, dayFrom, 0, 0, 0).toInstant(ZoneOffset.UTC);
+            Instant start2 = LocalDateTime.of(yearTo, monthTo, dayTo, 0, 0, 0).toInstant(ZoneOffset.UTC);
+
+            final var isWithinTimeframe =
+                    isInstantBetween(fileTag.lastModifiedTime().toInstant(), start1, start2);
+
+            if (isWithinTimeframe) {
                 for (final var line : fileTag.fileLines().lines()) {
                     if (UrlValidator.getInstance().isValid(line)) {
                         urlCount++;
                         try {
                             final var url = new URL(line);
                             final var host = url.getHost();
-                            var keyCount = hostCount.getOrDefault(host, 0);
+                            var keyCount = hostCount.getOrDefault(host, -1);
                             keyCount++;
                             hostCount.put(host, keyCount);
                         } catch (MalformedURLException mex) {
@@ -195,12 +203,26 @@ public class Service {
             if (!hostCountSorted.isEmpty()) {
                 System.out.println(hostCountSorted);
             }
+
+            for (final var supersetKey : hostCountSorted.keySet()) {
+                var supersetCount = hostCountSorted.getOrDefault(supersetKey, 0);
+                supersetCount++;
+                hostCountSuperset.put(supersetKey, supersetCount);
+            }
         }
         System.out.println("urlCount= " + urlCount);
         System.out.println("---");
 
-        // return new ProcessTags(tagCounterList, tagLines);
+        Stream<Map.Entry<String, Integer>> hostCountSupersetStream =
+                hostCountSuperset.entrySet().stream().sorted(Map.Entry.comparingByValue());
+        final var hostCountSupersetSorted = hostCountSupersetStream.collect(
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        System.out.println("hostCountSupersetSorted= " + hostCountSupersetSorted);
 
         return new ProcessTags(new ArrayList<>(), new HashMap<>());
+    }
+
+    public static boolean isInstantBetween(Instant instant, Instant startInclusive, Instant endExclusive) {
+        return (instant.isAfter(startInclusive) || instant.equals(startInclusive)) && instant.isBefore(endExclusive);
     }
 }
