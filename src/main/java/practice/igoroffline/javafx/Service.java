@@ -164,8 +164,16 @@ public class Service {
             // final var isWithinTimeframe = fileTag.lastModifiedTime().toInstant().isAfter(Instant.now().minus(3,
             // ChronoUnit.DAYS));
 
-            Instant start1 = LocalDateTime.of(2025, 6, 1, 0, 0, 0).toInstant(ZoneOffset.UTC); // Or your desired ZoneId
-            Instant start2 = LocalDateTime.of(2025, 7, 1, 0, 0, 0).toInstant(ZoneOffset.UTC); // Or your desired ZoneId
+            final var yearFrom = 2025;
+            final var monthFrom = 6;
+            final var dayFrom = 1;
+            final var yearTo = 2025;
+            final var monthTo = 7;
+            final var dayTo = 1;
+
+            Instant start1 =
+                    LocalDateTime.of(yearFrom, monthFrom, dayFrom, 0, 0, 0).toInstant(ZoneOffset.UTC);
+            Instant start2 = LocalDateTime.of(yearTo, monthTo, dayTo, 0, 0, 0).toInstant(ZoneOffset.UTC);
 
             final var isWithinTimeframe =
                     isInstantBetween(fileTag.lastModifiedTime().toInstant(), start1, start2);
