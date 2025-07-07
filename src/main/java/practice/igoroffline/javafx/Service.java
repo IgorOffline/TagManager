@@ -155,19 +155,8 @@ public class Service {
     }
 
     public ProcessTags listUrls(List<FileTags> fileTags) {
-
-        // var count = 10;
-        // if (fileTags.size() < count) {
-        //    count = fileTags.size();
-        // }
-        // System.out.println("---");
         var urlCount = 0;
-        // for (int i = 0; i < count; i++) {
-        for (int i = 0; i < fileTags.size(); i++) {
-            final var fileTag = fileTags.get(i);
-            final var lineCount = fileTag.fileLines().lines().size();
-            // System.out.println(lineCount);
-
+        for (final FileTags fileTag : fileTags) {
             final var hostCount = new HashMap<String, Integer>();
 
             if (fileTag.lastModifiedTime().toInstant().isAfter(Instant.now().minus(3, ChronoUnit.DAYS))) {
